@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Attendance System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Face Recognition Attendance System</h1>
+    <div class="button-container">
+        <button class="button" id="startStreamButton" onclick="startStream()">Start Stream</button>
+        <button class="button" id="stopStreamButton" onclick="stopStream()">Stop Stream</button>
+        <button class="button" id="showDataButton" onclick="showData()">Show Attendence Data</button>
+    </div>
+    <script>
+        let streamStarted = false;
+        let videoElement;
+
+        function startStream() {
+            fetch('/video_feed')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    videoElement = document.createElement('video');
+                    videoElement.src = url;
+                    videoElement.autoplay = true;
+                    document.body.appendChild(videoElement);
+                    
+                    document.getElementById('startStreamButton').style.display = 'block';
+                  
+                    streamStarted = false;
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                });
+        }
+
+        function stopStream() {
+            fetch('/stop_stream')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    console.log(data);
+                    videoElement.pause();
+                    videoElement.src = '';
+                    document.getElementById('startStreamButton').style.display = 'inline-block';
+                    document.getElementById('stopStreamButton').style.display = 'none';
+                    streamStarted = false;
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                });
+        }
+
+        function showData() {
+            fetch('/csv_data')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newWindow = window.open('', '_blank');
+                    newWindow.document.write(doc.documentElement.outerHTML);
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                });
+        }
+    </script>
+</body>
+</html>

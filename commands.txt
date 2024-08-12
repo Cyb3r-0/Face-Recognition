@@ -1,0 +1,2 @@
+http://127.0.0.1:5000/video_feed
+write post function html code to take a button to start stream for camera and face recognition and update attendence.csv
